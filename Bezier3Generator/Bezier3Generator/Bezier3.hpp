@@ -118,6 +118,7 @@ namespace Udon {
 
 	//ベジェ曲線の作図用クラス
 	//親クラスのBezier3を継承し,配列にすることで連続的なベジェ曲線を作成する
+	//Vec2の配列を受け取って要素数から使用するベジェ曲線の数を決める
 	class Beziers3 {
 	private:
 		std::vector<Vec2>::const_iterator beginIt;
