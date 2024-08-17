@@ -121,14 +121,22 @@ namespace Udon {
 	//Vec2の配列を受け取って要素数から使用するベジェ曲線の数を決める
 	class Beziers3 {
 	private:
-		std::vector<Vec2>::const_iterator beginIt;
-		std::vector<Vec2>::const_iterator endIt;
-
+		std::vector<Vec2> points;
 		std::vector<Bezier3> beziers;
 
 	public:
-		Beziers3(std::vector<Vec2>::const_iterator beginIt, std::vector<Vec2>::const_iterator endIt) {}
-
+		Beziers3(std::vector<Vec2> points)
+		:points(points)
+		{
+			if (points.size() % 3 != 0) {
+				throw "The number of points is not correct";
+			}
+			else {
+				for (int i = 0; i < points.size(); i += 3) {
+					beziers.push_back(Bezier3(points.begin() + i));
+				}
+			}
+		}
 
 
 		Beziers3& getLength() {
