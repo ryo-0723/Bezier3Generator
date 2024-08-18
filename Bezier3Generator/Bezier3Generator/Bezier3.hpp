@@ -31,15 +31,17 @@
 */
 namespace Udon {
 	class Bezier3 {
-		std::vector<Vec2>::const_iterator beginIt;
+		std::vector<Vec2> points;
 		int n;
+		size_t index;
 		//std::array<double, 5> xx;
 	public:
 		/// @brief 配列の任意のイテレータを引数にそこから4つの座標を取得し、描画する
 		/// @param beginIt 
-		Bezier3(std::vector<Vec2>::const_iterator beginIt)
-			:beginIt(beginIt)
+		Bezier3(std::vector<Vec2>& points, size_t index)
+			:points(points)
 			, n(1000)
+			, index(index)
 			//, xx{ 0,0,0,0,0 }
 		{
 			//Vec2 A = -(*beginIt) + 3 * (*(beginIt + 1)) - 3 * (*(beginIt + 2)) + (*(beginIt + 3));
@@ -54,6 +56,7 @@ namespace Udon {
 			//	sum(C * C),
 			//};
 		}
+
 
 		Vec2 getPosFromLength(double distance,int div = 10000) {
 			double length = 0.0;
@@ -80,10 +83,15 @@ namespace Udon {
 			//0 <= tar <= 1.0
 			//const auto px = ((1 - t) * (1 - t) * (1 - t)) * (*beginIt).x + t * (3 * ((1 - t) * (1 - t)) * (*(beginIt + 1)).x + t * (3 * (1 - t) * (*(beginIt + 2)).x + t * (*(beginIt + 3)).x));
 			//const auto py = ((1 - t) * (1 - t) * (1 - t)) * (*beginIt).y + t * (3 * ((1 - t) * (1 - t)) * (*(beginIt + 1)).y + t * (3 * (1 - t) * (*(beginIt + 2)).y + t * (*(beginIt + 3)).y));
-			const auto p = ((1 - t) * (1 - t) * (1 - t)) * (*beginIt) + t * (3 * ((1 - t) * (1 - t)) * (*(beginIt + 1)) + t * (3 * (1 - t) * (*(beginIt + 2)) + t * (*(beginIt + 3))));
+			const auto p = ((1 - t) * (1 - t) * (1 - t)) * points[index] + t * (3 * ((1 - t) * (1 - t)) * (points[index+1]) + t * (3 * (1 - t) * (points[index+2]) + t * (points[index+3])));
 			return p;
 		}
-		Bezier3& draw(Color color) {
+
+		Bezier3& draw(bool controlLine, Color color) {
+			if (controlLine) {
+				Line{ points[index],points[index + 1] }.draw(1, color);
+				Line{ points[index + 2],points[index + 3] }.draw(1, color);
+			}
 			for (int i = 0; i < n; i++) {
 				const auto p1 = getPos((double)i / n);
 				const auto p2 = getPos((double)(i + 1) / n);
@@ -125,26 +133,29 @@ namespace Udon {
 		std::vector<Bezier3> beziers;
 
 	public:
-		Beziers3(std::vector<Vec2> points)
+		Beziers3(std::vector<Vec2>& points)
 		:points(points)
 		{
-			if (points.size() % 3 != 0) {
+			if (points.size() % 3 != 1) {//4点の点でベジェ曲線を描き、二点を別の曲線と共有する
 				throw "The number of points is not correct";
 			}
-			else {
-				for (int i = 0; i < points.size(); i += 3) {
-					beziers.push_back(Bezier3(points.begin() + i));
+			else {// size 7
+				for (int i = 0; i < points.size()-3; i += 3) {//0,3
+					beziers.push_back(Bezier3(points,i));
 				}
 			}
 		}
+
 
 
 		Beziers3& getLength() {
 			return *this;
 		}
 
-		Beziers3& draw(Color& color) {
-
+		Beziers3& draw(Color color) {
+			for (auto&& bezier : beziers) {
+				bezier.draw(true,color);
+			}
 			return *this;
 		}
 	};
